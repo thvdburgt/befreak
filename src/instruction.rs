@@ -689,6 +689,13 @@ impl Instruction {
                 state.location = state.next();
                 Successful
             }
+            // reverse
+            REVERSE_MODE if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
+                state.reverse_mode = !state.reverse_mode;
+
+                state.location = state.next();
+                Successful
+            }
             // no rule found
             _ => {
                 println!("No rule found");
