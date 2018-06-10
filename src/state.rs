@@ -1,3 +1,5 @@
+use std::fmt;
+
 use direction::Direction;
 use instruction::Instruction;
 use program::Program;
@@ -5,30 +7,36 @@ use stack::Stack;
 
 pub struct State {
     pub program: Program,
-    pub data_stack: Vec<isize>,
-    pub control_stack: Vec<isize>,
+    pub data_stack: Stack<isize>,
+    pub control_stack: Stack<isize>,
     pub location: (usize, usize),
     pub direction: Direction,
     pub reverse_mode: bool,
     pub string_mode: bool,
-    pub multi_digit_accumulator: Vec<char>,
+    pub multi_digit_accumulator: String,
 }
 
 impl State {
     pub fn new(program: Program) -> Self {
         let location = program.lookup();
+        println!(
+            "starting at location line {}, col {})",
+            location.1 + 1,
+            location.0 + 1
+        );
         Self {
             program,
-            data_stack: Vec::new(),
-            control_stack: Vec::new(),
+            data_stack: Stack::new(),
+            control_stack: Stack::new(),
             location,
             direction: Direction::East,
             reverse_mode: false,
             string_mode: false,
-            multi_digit_accumulator: Vec::new(),
+            multi_digit_accumulator: String::new(),
         }
     }
 
+    // next
     pub fn next(&self) -> (usize, usize) {
         let (x, y) = self.location;
         let (r, c) = (self.program.rows(), self.program.cols());
@@ -46,16 +54,35 @@ impl State {
         }
     }
 
+    // instr
     pub fn instr(&self) -> Instruction {
-        let instruction = self
-            .program
+        let instruction = self.program
             .instruction_at(self.location)
             .expect("location in state should always give an instruction.");
 
         if self.reverse_mode {
-            *instruction
-        } else {
             instruction.inv()
+        } else {
+            *instruction
         }
+    }
+}
+
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // write!(f, "<{P}>", P = self.program)
+        write!(
+            f,
+            "<{D}, {C}, ({lx}, {ly}), {d}, {r}, {s}, '{n}'>",
+            // P = self.program,
+            D = self.data_stack,
+            C = self.control_stack,
+            lx = self.location.0,
+            ly = self.location.1,
+            d = self.direction,
+            r = self.reverse_mode,
+            s = self.string_mode,
+            n = self.multi_digit_accumulator
+        )
     }
 }

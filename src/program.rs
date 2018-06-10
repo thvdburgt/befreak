@@ -47,9 +47,9 @@ impl Program {
         };
 
         // pad rows that are not of length width
-        for row in instructions.iter_mut() {
+        for row in &mut instructions {
             for _ in 0..(width - row.len()) {
-                row.push(Instruction::Nop);
+                row.push(Instruction::nop());
             }
         }
 
@@ -72,12 +72,13 @@ impl Program {
         self.instructions.get(y)?.get(x)
     }
 
+    // lookup
     pub fn lookup(&self) -> (usize, usize) {
         // Loop through the program, bottom to top, left to right, looking for @ (the start symbol)
         let mut last_halt = None;
         for (y, row) in self.instructions.iter().enumerate() {
             for (x, ins) in row.iter().enumerate() {
-                if *ins == Instruction::Halt {
+                if ins.is_halt() {
                     last_halt = Some((x, y));
                 }
             }
@@ -91,7 +92,7 @@ impl Program {
 
 impl fmt::Display for Program {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for row in self.instructions.iter() {
+        for row in &self.instructions {
             for c in row {
                 write!(f, "{}", c)?;
             }

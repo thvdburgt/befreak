@@ -1,235 +1,196 @@
+use std::char;
 use std::fmt;
 
 use direction::Direction;
 use state::State;
 
-
-// type Instruction = char;
-
 #[derive(Clone, Copy, PartialEq)]
-pub enum Instruction {
-    Nop,
-    Digit(u32),
-    Push,
-    Pop,
-    TransferTopDataControl,
-    TransferTopControlData,
-    InterchangeTops,
-    // Write,      // unimplemented
-    // Read,       // unimplemented
-    Increment,
-    Decrement,
-    Add,
-    Subtract,
-    Divide,
-    Multiply,
-    Not,
-    And,
-    Or,
-    Xor,
-    RotateLeft,
-    RotateRight,
-    ControlToggle,
-    Equals,
-    Less,
-    Greater,
-    SwapTopTwo,
-    Dig,
-    Bury,
-    Flip,
-    SwapSecondThird,
-    Over,
-    Under,
-    Duplicate,
-    Unduplicate,
-    StringMode,
-    ReverseMode,
+pub struct Instruction {
+    c: char,
+}
+
+const NOP: char = ' ';
+const PUSH: char = '(';
+const POP: char = ')';
+const TRANSFER_TOP_DATA_CONTROL: char = '[';
+const TRANSFER_TOP_CONTROL_DATA: char = ']';
+const INTERCHANGE_TOPS: char = '$';
+const WRITE: char = 'w';
+const READ: char = 'r';
+const INCREMENT: char = '\'';
+const DECREMENT: char = '`';
+const ADD: char = '+';
+const SUBTRACT: char = '-';
+const DIVIDE: char = '%';
+const MULTIPLY: char = '*';
+const NOT: char = '~';
+const AND: char = '+';
+const OR: char = '|';
+const XOR: char = '#';
+const ROTATE_LEFT: char = '{';
+const ROTATE_RIGHT: char = '}';
+const CONTROL_TOGGLE: char = '!';
+const EQUALS: char = '=';
+const LESS: char = 'l';
+const GREATER: char = 'g';
+const SWAP_TWO_TOP: char = 's';
+const DIG: char = 'd';
+const BURY: char = 'b';
+const FLIP: char = 'f';
+const SWAP_SECOND_THIRD: char = 'c';
+const OVER: char = 'o';
+const UNDER: char = 'u';
+const DUPLICATE: char = ':';
+const UNDUPLICATE: char = ';';
+const STRING_MODE: char = '"';
+const REVERSE_MODE: char = '?';
+const HALT: char = '@';
+const MIRROR_BACK: char = '\\';
+const MIRROR_FORWARD: char = '/';
+const BRANCH_EAST: char = '>';
+const BRANCH_WEST: char = '<';
+const BRANCH_SOUTH: char = 'v';
+const BRANCH_NORTH: char = '^';
+
+pub enum InstructionExecutionStatus {
+    Successful,
+    Unsuccessful,
     Halt,
-    MirrorBack,    // Like backslash \
-    MirrorForward, // Like forward slash /
-    Branch(Direction),
-    AsciiPrintable(char),
 }
 
 impl Instruction {
-    // TODO: find a better solution for the double associating in from_char/to_char.
     pub fn from_char(c: char) -> Option<Self> {
-        use self::Instruction::*;
-        match c {
-            ' ' => Some(Nop),
-            '0'..='9' => Some(Digit(c.to_digit(10).expect("c must be a character digit"))),
-            '(' => Some(Push),
-            ')' => Some(Pop),
-            '[' => Some(TransferTopDataControl),
-            ']' => Some(TransferTopControlData),
-            '$' => Some(InterchangeTops),
-            //'w' => Some(Write),
-            //'r' => Some(Read),
-            '\'' => Some(Increment),
-            '`' => Some(Decrement),
-            '+' => Some(Add),
-            '-' => Some(Subtract),
-            '%' => Some(Divide),
-            '*' => Some(Multiply),
-            '~' => Some(Not),
-            '&' => Some(And),
-            '|' => Some(Or),
-            '#' => Some(Xor),
-            '{' => Some(RotateLeft),
-            '}' => Some(RotateRight),
-            '!' => Some(ControlToggle),
-            '=' => Some(Equals),
-            'l' => Some(Less),
-            'g' => Some(Greater),
-            's' => Some(SwapTopTwo),
-            'd' => Some(Dig),
-            'b' => Some(Bury),
-            'f' => Some(Flip),
-            'c' => Some(SwapSecondThird),
-            'o' => Some(Over),
-            'u' => Some(Under),
-            ':' => Some(Duplicate),
-            ';' => Some(Unduplicate),
-            '"' => Some(StringMode),
-            '?' => Some(ReverseMode),
-            '@' => Some(Halt),
-            '\\' => Some(MirrorBack),
-            '/' => Some(MirrorForward),
-            '>' => Some(Branch(Direction::East)),
-            '<' => Some(Branch(Direction::West)),
-            'v' => Some(Branch(Direction::South)),
-            '^' => Some(Branch(Direction::North)),
-            c if c.is_ascii() && !c.is_ascii_control() => Some(AsciiPrintable(c)),
+        if c.is_ascii() && !c.is_ascii_control() {
+            Some(Instruction { c })
+        } else {
+            None
+        }
+    }
+
+    pub fn nop() -> Self {
+        Instruction { c: NOP }
+    }
+
+    pub fn is_halt(&self) -> bool {
+        self.c == HALT
+    }
+
+    pub fn inv(&self) -> Self {
+        let c = match self.c {
+            PUSH => POP,
+            POP => PUSH,
+            TRANSFER_TOP_DATA_CONTROL => TRANSFER_TOP_CONTROL_DATA,
+            TRANSFER_TOP_CONTROL_DATA => TRANSFER_TOP_DATA_CONTROL,
+            INCREMENT => DECREMENT,
+            DECREMENT => INCREMENT,
+            ADD => SUBTRACT,
+            SUBTRACT => ADD,
+            DIVIDE => MULTIPLY,
+            MULTIPLY => DIVIDE,
+            ROTATE_LEFT => ROTATE_RIGHT,
+            ROTATE_RIGHT => ROTATE_LEFT,
+            DIG => BURY,
+            BURY => DIG,
+            OVER => UNDER,
+            UNDER => OVER,
+            DUPLICATE => UNDUPLICATE,
+            UNDUPLICATE => DUPLICATE,
+            HALT => panic!(),
+            i => i,
+        };
+
+        Instruction { c }
+    }
+
+    fn direction(&self) -> Option<Direction> {
+        match self.c {
+            BRANCH_EAST => Some(Direction::East),
+            BRANCH_WEST => Some(Direction::West),
+            BRANCH_SOUTH => Some(Direction::South),
+            BRANCH_NORTH => Some(Direction::North),
             _ => None,
         }
     }
 
-    pub fn to_char(&self) -> char {
-        use self::Instruction::*;
-        use std::char;
-        match self {
-            Nop => ' ',
-            Digit(x) => char::from_digit(*x, 10).expect("x is not a digit"),
-            Push => '(',
-            Pop => ')',
-            TransferTopDataControl => '[',
-            TransferTopControlData => ']',
-            InterchangeTops => '$',
-            // Write => 'w',
-            // Read => 'r',
-            Increment => '\'',
-            Decrement => '`',
-            Add => '+',
-            Subtract => '-',
-            Divide => '%',
-            Multiply => '*',
-            Not => '~',
-            And => '+',
-            Or => '|',
-            Xor => '#',
-            RotateLeft => '{',
-            RotateRight => '}',
-            ControlToggle => '!',
-            Equals => '=',
-            Less => 'l',
-            Greater => 'g',
-            SwapTopTwo => 's',
-            Dig => 'd',
-            Bury => 'b',
-            Flip => 'f',
-            SwapSecondThird => 'c',
-            Over => 'o',
-            Under => 'u',
-            Duplicate => ':',
-            Unduplicate => ';',
-            StringMode => '"',
-            ReverseMode => '?',
-            Halt => '@',
-            MirrorBack => '\\',
-            MirrorForward => '/',
-            Branch(Direction::East) => '>',
-            Branch(Direction::West) => '<',
-            Branch(Direction::South) => 'v',
-            Branch(Direction::North) => '^',
-            AsciiPrintable(c) => *c,
-        }
-    }
-
-    pub fn inv(&self) -> Self {
-        use self::Instruction::*;
-        match *self {
-            Push => Pop,
-            Pop => Push,
-            TransferTopDataControl => TransferTopControlData,
-            TransferTopControlData => TransferTopDataControl,
-            Increment => Decrement,
-            Decrement => Increment,
-            Add => Subtract,
-            Subtract => Add,
-            Divide => Multiply,
-            Multiply => Divide,
-            RotateLeft => RotateRight,
-            RotateRight => RotateLeft,
-            Dig => Bury,
-            Bury => Dig,
-            Over => Under,
-            Under => Over,
-            Duplicate => Unduplicate,
-            Unduplicate => Duplicate,
-            Halt => panic!(),
-            i => i,
-        }
-    }
-
-    pub fn execute(&self, state: &mut State) -> bool {
-        use self::Instruction::*;
-        match self {
-            Nop if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
+    pub fn execute(&self, state: &mut State) -> InstructionExecutionStatus {
+        //println!("executing {}", self);
+        use self::InstructionExecutionStatus::*;
+        match self.c {
+            // nop
+            NOP if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
                 state.location = state.next();
-                true
+                Successful
             }
-            // Digit(x) => char::from_digit(*x, 10).expect("x is not a digit"),
-            Push => {
+            // digit
+            _ if !state.string_mode && self.c.is_digit(10) && !state.reverse_mode => {
+                state.multi_digit_accumulator.push(self.c);
+
+                state.location = state.next();
+                Successful
+            }
+            // digit_inv
+            _ if !state.string_mode && self.c.is_digit(10) && !state.reverse_mode => {
+                state.multi_digit_accumulator.insert(0, self.c);
+
+                state.location = state.next();
+                Successful
+            }
+            // digit_end
+            _ if !state.string_mode && !state.multi_digit_accumulator.is_empty()
+                && !self.c.is_digit(10) && !state.data_stack.is_empty() =>
+            {
+                let x = state.data_stack.pop().expect("non empty");
+                let n: isize = state
+                    .multi_digit_accumulator
+                    .parse()
+                    .expect("should be only integers");
+                state.multi_digit_accumulator.clear();
+                state.data_stack.push(x ^ n);
+
+                Successful
+            }
+            // push
+            PUSH if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
                 state.data_stack.push(0);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Pop if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // pop
+            POP if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && !state.data_stack.is_empty()
-                && *state.data_stack.last().expect("len >= 1") == 0 =>
+                && state.data_stack.last().expect("len >= 1") == 0 =>
             {
                 state.data_stack.pop().expect("non empty");
 
                 state.location = state.next();
-                true
+                Successful
             }
-            TransferTopDataControl
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // transfer_1
+            TRANSFER_TOP_DATA_CONTROL
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
                 state.control_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            TransferTopControlData
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // transfer_2
+            TRANSFER_TOP_CONTROL_DATA
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && !state.control_stack.is_empty() =>
             {
                 let x = state.control_stack.pop().expect("non empty");
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            InterchangeTops
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // interchange
+            INTERCHANGE_TOPS
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && !state.data_stack.is_empty()
                     && !state.control_stack.is_empty() =>
             {
@@ -239,34 +200,53 @@ impl Instruction {
                 state.control_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            // // Write => 'w',
-            // // Read => 'r',
-            Increment
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // write
+            WRITE if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
+                // try casting the top of the data stack to a char
+                let top = state.data_stack.pop().expect("non_empty");
+                match char::from_u32(top as u32) {
+                    Some(c) => {
+                        print!("{}", c);
+                        state.location = state.next();
+                        Successful
+                    }
+                    None => {
+                        state.data_stack.push(top);
+                        Unsuccessful
+                    }
+                }
+            }
+            // read
+            READ if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
+                // TODO
+                unimplemented!();
+            }
+            // increment
+            INCREMENT
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
                 state.data_stack.push(x + 1);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Decrement
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // decrement
+            DECREMENT
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
                 state.data_stack.push(x - 1);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Add if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // add
+            ADD if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -275,11 +255,11 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Subtract
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // subtract
+            SUBTRACT
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -288,13 +268,13 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Divide
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // divide
+            DIVIDE
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2
-                    && *state.data_stack.last().expect("len >= 2") != 0 =>
+                    && state.data_stack.last().expect("len >= 2") != 0 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
                 let y = state.data_stack.pop().expect("len >= 2");
@@ -303,11 +283,11 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Multiply
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // multiply
+            MULTIPLY
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -317,20 +297,20 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Not if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // not
+            NOT if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
                 state.data_stack.push(!x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            And if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // and
+            AND if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -341,10 +321,10 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Or if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // or
+            OR if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -355,10 +335,10 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Xor if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // xor
+            XOR if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -367,11 +347,11 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            RotateLeft
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // rotate_left
+            ROTATE_LEFT
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -380,11 +360,11 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            RotateRight
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // rotate_right
+            ROTATE_RIGHT
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -393,69 +373,87 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Control
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // toggle
+            CONTROL_TOGGLE
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && !state.control_stack.is_empty() =>
             {
                 let c = state.control_stack.pop().expect("non empty");
                 state.control_stack.push(c ^ 1);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Equals
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // equals
+            EQUALS
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2
                     && !state.control_stack.is_empty() =>
             {
-                let x = state.data_stack.pop().expect("len >= 2");
-                let y = state.data_stack.pop().expect("len >= 2");
+                let x = state
+                    .data_stack
+                    .get(state.data_stack.len() - 1)
+                    .expect("len >= 2");
+                let y = state
+                    .data_stack
+                    .get(state.data_stack.len() - 2)
+                    .expect("len >= 2");
                 if y == x {
                     let c = state.control_stack.pop().expect("non empty");
                     state.control_stack.push(c ^ 1);
                 }
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Less if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // less
+            LESS if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 2
                 && !state.control_stack.is_empty() =>
             {
-                let x = state.data_stack.pop().expect("len >= 2");
-                let y = state.data_stack.pop().expect("len >= 2");
+                let x = state
+                    .data_stack
+                    .get(state.data_stack.len() - 1)
+                    .expect("len >= 2");
+                let y = state
+                    .data_stack
+                    .get(state.data_stack.len() - 2)
+                    .expect("len >= 2");
                 if y < x {
                     let c = state.control_stack.pop().expect("non empty");
                     state.control_stack.push(c ^ 1);
                 }
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Greater
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // greater
+            GREATER
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2
                     && !state.control_stack.is_empty() =>
             {
-                let x = state.data_stack.pop().expect("len >= 2");
-                let y = state.data_stack.pop().expect("len >= 2");
+                let x = state
+                    .data_stack
+                    .get(state.data_stack.len() - 1)
+                    .expect("len >= 2");
+                let y = state
+                    .data_stack
+                    .get(state.data_stack.len() - 2)
+                    .expect("len >= 2");
                 if y > x {
                     let c = state.control_stack.pop().expect("non empty");
                     state.control_stack.push(c ^ 1);
                 }
 
                 state.location = state.next();
-                true
+                Successful
             }
-            SwapTopTwo
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // swap_1
+            SWAP_TWO_TOP
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -464,10 +462,10 @@ impl Instruction {
                 state.data_stack.push(y);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Dig if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // dig
+            DIG if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -478,10 +476,10 @@ impl Instruction {
                 state.data_stack.push(z);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Bury if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // bury
+            BURY if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -492,10 +490,10 @@ impl Instruction {
                 state.data_stack.push(y);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Flip if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // flip
+            FLIP if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -506,11 +504,11 @@ impl Instruction {
                 state.data_stack.push(z);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            SwapSecondThird
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // swap_2
+            SWAP_SECOND_THIRD
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -521,10 +519,10 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Over if !state.string_mode
-                && state.multi_digit_accumulator.is_empty()
+            // over
+            OVER if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -534,26 +532,29 @@ impl Instruction {
                 state.data_stack.push(y);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Under
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // under
+            UNDER
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 3
-                    && *state.data_stack.last().expect("len >= 3")
-                        == state.data_stack[state.data_stack.len() - 3] =>
+                    && state.data_stack.last().expect("len >= 3")
+                        == state
+                            .data_stack
+                            .get(state.data_stack.len() - 3)
+                            .expect("len >= 3") =>
             {
                 let y = state.data_stack.pop().expect("len >= 3");
                 let x = state.data_stack.pop().expect("len >= 3");
-                debug_assert!(*state.data_stack.last().expect("len >= 3") == y);
+                debug_assert!(state.data_stack.last().expect("len >= 3") == y);
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Duplicate
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // duplicate
+            DUPLICATE
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
@@ -561,143 +562,144 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Unduplicate
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty()
+            // unduplicate
+            UNDUPLICATE
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2
-                    && *state.data_stack.last().expect("len >= 2")
-                        == state.data_stack[state.data_stack.len() - 2] =>
+                    && state.data_stack.last().expect("len >= 2")
+                        == state
+                            .data_stack
+                            .get(state.data_stack.len() - 2)
+                            .expect("len >= 2") =>
             {
                 state.data_stack.pop().expect("len >= 2");
 
                 state.location = state.next();
-                true
+                Successful
             }
-            StringMode
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty() =>
-            {
+            // string_toggle
+            STRING_MODE if state.multi_digit_accumulator.is_empty() => {
                 state.string_mode = !state.string_mode;
 
                 state.location = state.next();
-                true
+                Successful
             }
-            ReverseMode
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty() =>
-            {
-                state.reverse_mode = !state.reverse_mode;
-
-                state.location = state.next();
-                true
-            }
-            // TODO: Halt => '@',
-            MirrorBack
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty() =>
-            {
+            // halt
+            HALT if !state.string_mode && state.multi_digit_accumulator.is_empty() => Halt,
+            // mirror_1
+            MIRROR_BACK if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
                 state.direction = state.direction.mirror();
 
                 state.location = state.next();
-                true
+                Successful
             }
-            MirrorForward
-                if !state.string_mode
-                    && state.multi_digit_accumulator.is_empty() =>
-            {
+            // mirror_2
+            MIRROR_FORWARD if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
                 state.direction = state.direction.mirror().opposite();
 
                 state.location = state.next();
-                true
+                Successful
             }
-            Branch(d) => {
-                if state.direction == *d {
-                    // IP coming from the same direction
-                    if state.control_stack.len() < 1 {
-                        false
-                    } else {
-                        let c = state.control_stack.pop().expect("len >= 1");
-                        // toggle top of the control stack
-                        state.control_stack.push(c ^ 1);
-                        // toggle reverse mode
-                        state.reverse_mode = !state.reverse_mode;
-                        // go in the opposite direction
-                        state.direction = state.direction.opposite();
-
-                        state.location = state.next();
-                        true
-                    }
-                } else if state.direction == d.opposite() {
-                    // IP coming from the opposite direction
-                    if state.control_stack.len() < 1 {
-                        false
-                    } else {
-                        let c = state.control_stack.pop().expect("len >= 1");
-                        // Turn left if c equals 0 (opposite in reverse mode), and turn
-                        // right if 1 (opposite in reverse mode)
-                        if (c == 0) ^ state.reverse_mode {
-                            state.direction = state.direction.left();
-                        } else {
-                            state.direction = state.direction.right();
-                        }
-
-                        state.location = state.next();
-                        true
-                    }
+            // branch_1
+            BRANCH_EAST | BRANCH_NORTH | BRANCH_SOUTH | BRANCH_WEST
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                    && (self.direction().expect("self is a branching instruction")
+                        == state.direction.right()
+                        || self.direction().expect("self is a branching instruction")
+                            == state.direction.left()) =>
+            {
+                // IP coming from the side
+                let d = self.direction().expect("self is a branching instruction");
+                if d == state.direction.right() {
+                    // right turn
+                    state
+                        .control_stack
+                        .push(if !state.reverse_mode { 1 } else { 0 });
+                } else if d == state.direction.left() {
+                    // left turn
+                    state
+                        .control_stack
+                        .push(if !state.reverse_mode { 0 } else { 1 });
                 } else {
-                    // IP coming from the side
-                    if *d == state.direction.right() {
-                        // right turn
-                        state
-                            .control_stack
-                            .push(if !state.reverse_mode { 0 } else { 1 });
-                    } else if *d == state.direction.left() {
-                        // left turn
-                        state
-                            .control_stack
-                            .push(if !state.reverse_mode { 1 } else { 0 });
-                    } else {
-                        panic!("incomming direction should be side of instuction");
-                    }
+                    panic!("incoming direction should be side of instuction");
+                }
+                state.direction = d;
 
-                    state.direction = *d;
-                    false
-                }
+                state.location = state.next();
+                Successful
             }
-            AsciiPrintable(c) => {
-                if state.string_mode {
-                    let c = *c as isize;
-                    if !state.reverse_mode {
-                        // if reverse mode is not enabled push the ascii value of the char to the
-                        // stack
-                        state.data_stack.push(c);
-                        state.location = state.next();
-                        true
-                    } else {
-                        // if reverse mode is enabled pop the ascii value of the char from the
-                        // stack
-                        if state.data_stack.len() < 1
-                            || *state.data_stack.last().expect("len >= 1") != c
-                        {
-                            false
-                        } else {
-                            state.data_stack.pop();
-                            true
-                        }
-                    }
+            // branch_2
+            BRANCH_EAST | BRANCH_NORTH | BRANCH_SOUTH | BRANCH_WEST
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                    && state.direction
+                        == self.direction()
+                            .expect("self is a branching instruction")
+                            .opposite() && !state.control_stack.is_empty() =>
+            {
+                // IP coming from the opposite direction
+                let c = state.control_stack.pop().expect("non empty");
+                // Turn left if c equals 0 (opposite in reverse mode), and turn right if 1 (opposite in reverse mode)
+                if (c == 0) ^ state.reverse_mode {
+                    state.direction = state.direction.left();
                 } else {
-                    false
+                    state.direction = state.direction.right();
                 }
+
+                state.location = state.next();
+                Successful
             }
-            _ => false,
+            // branch_3
+            BRANCH_EAST | BRANCH_NORTH | BRANCH_SOUTH | BRANCH_WEST
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                    && state.direction == self.direction().expect("self is a branching instruction")
+                    && !state.control_stack.is_empty() =>
+            {
+                // IP coming from the same direction
+                let c = state.control_stack.pop().expect("non empty");
+                // toggle top of the control stack
+                state.control_stack.push(c ^ 1);
+                // toggle reverse mode
+                state.reverse_mode = !state.reverse_mode;
+                // go in the opposite direction
+                state.direction = state.direction.opposite();
+
+                state.location = state.next();
+                Successful
+            }
+            // string_push
+            _ if state.string_mode && state.multi_digit_accumulator.is_empty()
+                && !state.reverse_mode =>
+            {
+                // if reverse mode is not enabled push the ascii value of the char to the
+                // stack
+                state.data_stack.push(self.c as isize);
+
+                state.location = state.next();
+                Successful
+            }
+            // string_pop
+            _ if state.string_mode && state.multi_digit_accumulator.is_empty() && state.reverse_mode
+                && !state.data_stack.is_empty()
+                && state.data_stack.last().expect("non empty") == self.c as isize =>
+            {
+                state.data_stack.pop();
+
+                state.location = state.next();
+                Successful
+            }
+            // no rule found
+            _ => {
+                println!("No rule found");
+                Unsuccessful
+            }
         }
     }
 }
 
 impl fmt::Display for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_char())
+        self.c.fmt(f)
     }
 }

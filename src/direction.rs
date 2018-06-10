@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Clone, Copy, PartialEq)]
 pub enum Direction {
     North,
@@ -37,6 +39,21 @@ impl Direction {
     }
 
     pub fn right(&self) -> Self {
-        self.left().mirror()
+        self.left().opposite()
+    }
+}
+
+impl fmt::Display for Direction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                Direction::North => "↑",
+                Direction::East => "→",
+                Direction::South => "↓",
+                Direction::West => "←",
+            }
+        )
     }
 }
