@@ -129,7 +129,7 @@ impl Instruction {
                 Successful
             }
             // digit_inv
-            _ if !state.string_mode && self.c.is_digit(10) && !state.reverse_mode => {
+            _ if !state.string_mode && self.c.is_digit(10) && state.reverse_mode => {
                 state.multi_digit_accumulator.insert(0, self.c);
 
                 state.location = state.next();
