@@ -203,23 +203,49 @@ impl Instruction {
                 Successful
             }
             // write
-            WRITE if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
+            WRITE
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                    && !state.reverse_mode =>
+            {
                 // try casting the top of the data stack to a char
                 let top = state.data_stack.pop().expect("non_empty");
                 match char::from_u32(top as u32) {
-                    Some(c) => {
+                    Some(c) if c.is_ascii() => {
+                        state.output_stack.push(c);
                         print!("{}", c);
+
                         state.location = state.next();
                         Successful
                     }
-                    None => {
+                    _ => {
                         state.data_stack.push(top);
                         Unsuccessful
                     }
                 }
             }
+            // unwrite
+            WRITE
+                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                    && state.reverse_mode && !state.output_stack.is_empty() =>
+            {
+                // pop the top char of the output stack and push its ascii value on the data stack.
+                let c = state.output_stack.pop().expect("non_empty");
+                debug_assert!(c.is_ascii());
+                state.data_stack.push(c as isize);
+
+                Successful
+            }
             // read
-            READ if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
+            READ if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                && !state.reverse_mode =>
+            {
+                // TODO
+                unimplemented!();
+            }
+            // unread
+            READ if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                && state.reverse_mode =>
+            {
                 // TODO
                 unimplemented!();
             }

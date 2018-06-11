@@ -14,6 +14,8 @@ pub struct State {
     pub reverse_mode: bool,
     pub string_mode: bool,
     pub multi_digit_accumulator: String,
+    pub output_stack: Stack<char>,
+    pub input_stack: Stack<char>,
 }
 
 impl State {
@@ -33,6 +35,8 @@ impl State {
             reverse_mode: false,
             string_mode: false,
             multi_digit_accumulator: String::new(),
+            output_stack: Stack::new(),
+            input_stack: Stack::new(),
         }
     }
 
