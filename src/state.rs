@@ -7,8 +7,8 @@ use stack::Stack;
 
 pub struct State {
     pub program: Program,
-    pub data_stack: Stack<isize>,
-    pub control_stack: Stack<isize>,
+    pub data_stack: Stack<u32>,
+    pub control_stack: Stack<u32>,
     pub location: (usize, usize),
     pub direction: Direction,
     pub reverse_mode: bool,

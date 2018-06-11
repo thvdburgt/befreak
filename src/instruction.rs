@@ -140,10 +140,10 @@ impl Instruction {
                 && !self.c.is_digit(10) && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
-                let n: isize = state
+                let n: u32 = state
                     .multi_digit_accumulator
                     .parse()
-                    .expect("should be only integers");
+                    .expect("should only be integers");
                 state.multi_digit_accumulator.clear();
                 state.data_stack.push(x ^ n);
 
@@ -231,7 +231,7 @@ impl Instruction {
                 // pop the top char of the output stack and push its ascii value on the data stack.
                 let c = state.output_stack.pop().expect("non_empty");
                 debug_assert!(c.is_ascii());
-                state.data_stack.push(c as isize);
+                state.data_stack.push(c as u32);
 
                 Successful
             }
@@ -382,7 +382,7 @@ impl Instruction {
             {
                 let x = state.data_stack.pop().expect("len >= 2");
                 let y = state.data_stack.pop().expect("len >= 2");
-                state.data_stack.push(y.rotate_left(x as u32)); // TODO: range check
+                state.data_stack.push(y.rotate_left(x));
                 state.data_stack.push(x);
 
                 state.location = state.next();
@@ -395,7 +395,7 @@ impl Instruction {
             {
                 let x = state.data_stack.pop().expect("len >= 2");
                 let y = state.data_stack.pop().expect("len >= 2");
-                state.data_stack.push(y.rotate_right(x as u32)); // TODO: range check
+                state.data_stack.push(y.rotate_right(x));
                 state.data_stack.push(x);
 
                 state.location = state.next();
@@ -700,7 +700,7 @@ impl Instruction {
             {
                 // if reverse mode is not enabled push the ascii value of the char to the
                 // stack
-                state.data_stack.push(self.c as isize);
+                state.data_stack.push(self.c as u32);
 
                 state.location = state.next();
                 Successful
@@ -708,7 +708,7 @@ impl Instruction {
             // string_pop
             _ if state.string_mode && state.multi_digit_accumulator.is_empty() && state.reverse_mode
                 && !state.data_stack.is_empty()
-                && state.data_stack.last().expect("non empty") == self.c as isize =>
+                && state.data_stack.last().expect("non empty") == self.c as u32 =>
             {
                 state.data_stack.pop();
 
