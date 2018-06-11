@@ -1,5 +1,6 @@
 use std::char;
 use std::fmt;
+use std::io::{self, Read};
 
 use direction::Direction;
 use state::State;
@@ -239,15 +240,55 @@ impl Instruction {
             READ if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && !state.reverse_mode =>
             {
-                // TODO
-                unimplemented!();
+                // FIXME: this currently sees every byte as a char.
+
+                // if input stack is empty read a char from stdin, otherwise pop an item from the
+                // input stack and use that
+                let c = if state.input_stack.is_empty() {
+                    // read a single byte from input
+                    match io::stdin().bytes().next() {
+                        Some(Ok(byte)) if byte.is_ascii() && !byte.is_ascii_control() => {
+                            Some(byte as u32)
+                        }
+                        _ => None,
+                    }
+                } else {
+                    // pop char from input stack
+                    let c = state.input_stack.pop().expect("non empty");
+                    debug_assert!(c.is_ascii());
+                    debug_assert!(!c.is_ascii_control());
+
+                    Some(c as u32)
+                };
+
+                // check if we have a character and push it to the data stack
+                match c {
+                    Some(c) => {
+                        state.data_stack.push(c);
+
+                        state.location = state.next();
+                        Successful
+                    }
+                    None => Unsuccessful,
+                }
             }
             // unread
             READ if !state.string_mode && state.multi_digit_accumulator.is_empty()
-                && state.reverse_mode =>
+                && state.reverse_mode && !state.data_stack.is_empty() =>
             {
-                // TODO
-                unimplemented!();
+                let top = state.data_stack.pop().expect("non empty");
+                match char::from_u32(top as u32) {
+                    Some(c) if c.is_ascii() => {
+                        state.input_stack.push(c);
+
+                        state.location = state.next();
+                        Successful
+                    }
+                    _ => {
+                        state.data_stack.push(top);
+                        Unsuccessful
+                    }
+                }
             }
             // increment
             INCREMENT
