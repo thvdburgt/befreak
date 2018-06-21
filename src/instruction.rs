@@ -72,11 +72,11 @@ impl Instruction {
         Instruction { c: NOP }
     }
 
-    pub fn is_halt(&self) -> bool {
+    pub fn is_halt(self) -> bool {
         self.c == HALT
     }
 
-    pub fn inv(&self) -> Self {
+    pub fn inv(self) -> Self {
         let c = match self.c {
             PUSH => POP,
             POP => PUSH,
@@ -103,7 +103,7 @@ impl Instruction {
         Instruction { c }
     }
 
-    fn direction(&self) -> Option<Direction> {
+    fn direction(self) -> Option<Direction> {
         match self.c {
             BRANCH_EAST => Some(Direction::East),
             BRANCH_WEST => Some(Direction::West),
@@ -113,7 +113,7 @@ impl Instruction {
         }
     }
 
-    pub fn execute(&self, state: &mut State) -> InstructionExecutionStatus {
+    pub fn execute(self, state: &mut State) -> InstructionExecutionStatus {
         //println!("executing {}", self);
         use self::InstructionExecutionStatus::*;
         match self.c {
@@ -248,7 +248,7 @@ impl Instruction {
                     // read a single byte from input
                     match io::stdin().bytes().next() {
                         Some(Ok(byte)) if byte.is_ascii() && !byte.is_ascii_control() => {
-                            Some(byte as u32)
+                            Some(u32::from(byte))
                         }
                         _ => None,
                     }
@@ -258,7 +258,7 @@ impl Instruction {
                     debug_assert!(c.is_ascii());
                     debug_assert!(!c.is_ascii_control());
 
-                    Some(c as u32)
+                    Some(u32::from(c))
                 };
 
                 // check if we have a character and push it to the data stack

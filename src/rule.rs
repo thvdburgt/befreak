@@ -43,8 +43,8 @@ pub enum Rule {
 }
 
 impl Rule {
-    pub fn char(&self) -> char {
-        match *self {
+    pub fn char(self) -> char {
+        match self {
             Rule::Nop => ' ',
             Rule::Digit => ' ',
             Rule::DigitInv => ' ',

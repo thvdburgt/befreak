@@ -9,8 +9,8 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub fn opposite(&self) -> Self {
-        match *self {
+    pub fn opposite(self) -> Self {
+        match self {
             Direction::North => Direction::South,
             Direction::East => Direction::West,
             Direction::South => Direction::North,
@@ -18,10 +18,10 @@ impl Direction {
         }
     }
 
-    pub fn mirror(&self) -> Self {
+    pub fn mirror(self) -> Self {
         // The function mirror will return the new direction when the direction is reflected by
         // the mirror \.
-        match *self {
+        match self {
             Direction::North => Direction::West,
             Direction::East => Direction::South,
             Direction::South => Direction::East,
@@ -29,8 +29,8 @@ impl Direction {
         }
     }
 
-    pub fn left(&self) -> Self {
-        match *self {
+    pub fn left(self) -> Self {
+        match self {
             Direction::North => Direction::West,
             Direction::East => Direction::North,
             Direction::South => Direction::East,
@@ -38,7 +38,7 @@ impl Direction {
         }
     }
 
-    pub fn right(&self) -> Self {
+    pub fn right(self) -> Self {
         self.left().opposite()
     }
 }
