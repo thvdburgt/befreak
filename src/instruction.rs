@@ -37,7 +37,7 @@ const GREATER: char = 'g';
 const SWAP_TWO_TOP: char = 's';
 const DIG: char = 'd';
 const BURY: char = 'b';
-const FLIP: char = 'f';
+const SWAP_FIRST_THIRD: char = 'f';
 const SWAP_SECOND_THIRD: char = 'c';
 const OVER: char = 'o';
 const UNDER: char = 'u';
@@ -559,8 +559,8 @@ impl Instruction {
                 state.location = state.next();
                 Successful
             }
-            // flip
-            FLIP if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            // swap_3
+            SWAP_FIRST_THIRD if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
