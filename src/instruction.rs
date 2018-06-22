@@ -31,7 +31,7 @@ const XOR: char = '#';
 const ROTATE_LEFT: char = '{';
 const ROTATE_RIGHT: char = '}';
 const CONTROL_TOGGLE: char = '!';
-const EQUALS: char = '=';
+const EQUAL: char = '=';
 const LESS: char = 'l';
 const GREATER: char = 'g';
 const SWAP_TWO_TOP: char = 's';
@@ -453,8 +453,8 @@ impl Instruction {
                 state.location = state.next();
                 Successful
             }
-            // equals
-            EQUALS
+            // equal_true / equal_false
+            EQUAL
                 if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2
                     && !state.control_stack.is_empty() =>
@@ -475,7 +475,7 @@ impl Instruction {
                 state.location = state.next();
                 Successful
             }
-            // less
+            // less_true / less_false
             LESS if !state.string_mode && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 2
                 && !state.control_stack.is_empty() =>
@@ -496,7 +496,7 @@ impl Instruction {
                 state.location = state.next();
                 Successful
             }
-            // greater
+            // greater_true / greater_false
             GREATER
                 if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2
