@@ -46,6 +46,24 @@ impl<T: Copy + Display> Stack<T> {
             None => None,
         }
     }
+    pub fn latex_representation(&self) -> String {
+        if self.s.is_empty() {
+            format!("\\epsilon")
+        } else {
+            let mut string = String::new();
+
+            let mut iter = self.s.iter().rev();
+            // write first element
+            let first_elem = iter.next().expect("non empty");
+            string.push_str(&format!("{}", first_elem));
+            // write the rest of the elements
+            for elem in iter {
+                string.push_str(&format!("{{\\ssc}}{}", elem));
+            }
+
+            string
+        }
+    }
 }
 
 impl<T: Copy + Display> fmt::Display for Stack<T> {

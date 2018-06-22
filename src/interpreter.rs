@@ -8,10 +8,17 @@ pub fn run(program: Program) {
 
     let mut state = State::new(program);
 
+
+    let mut counter = 0;
     loop {
-        //println!("{}", state);
+        print!("{} & ", counter);
+        counter += 1;
+        println!("{}", state.latex_representation());
         match state.instr().execute(&mut state) {
-            InstructionExecutionStatus::Successful => continue,
+            InstructionExecutionStatus::Successful(s) => {
+                println!("    \\Rightarrow_{{[{}]}} \\\\", s);
+                continue;
+            }
             InstructionExecutionStatus::Unsuccessful => {
                 println!(
                     "Unsuccessful execution of instruction {} at line {}, col {})",

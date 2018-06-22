@@ -70,6 +70,34 @@ impl State {
             *instruction
         }
     }
+
+    pub fn latex_representation(&self) -> String {
+        format!(
+            "\\langle P, {D}, {C}, ({lx}, {ly}), {d}, {r}, {s}, {n} \\rangle, &\n    where $P_{{({lx}, {ly})}} = $ `\\verb|{instr}|' &",
+            // P = self.program,
+            D = self.data_stack.latex_representation(),
+            C = self.control_stack.latex_representation(),
+            lx = self.location.0,
+            ly = self.location.1,
+            d = self.direction.latex_representation(),
+            r = if self.reverse_mode {
+                "\\bullet"
+            } else {
+                "\\circ"
+            },
+            s = if self.string_mode {
+                "\\bullet"
+            } else {
+                "\\circ"
+            },
+            n = if self.multi_digit_accumulator.is_empty() {
+                "\\lambda".to_owned()
+            } else {
+                self.multi_digit_accumulator.chars().map(|c| format!("\\verb|{}|", c)).collect()
+            },
+            instr = self.program.instruction_at(self.location).unwrap()
+        )
+    }
 }
 
 impl fmt::Display for State {

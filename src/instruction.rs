@@ -54,7 +54,7 @@ const BRANCH_SOUTH: char = 'v';
 const BRANCH_NORTH: char = '^';
 
 pub enum InstructionExecutionStatus {
-    Successful,
+    Successful(&'static str),
     Unsuccessful,
     Halt,
 }
@@ -120,21 +120,21 @@ impl Instruction {
             // nop
             NOP if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{nop}")
             }
             // digit
             _ if !state.string_mode && self.c.is_digit(10) && !state.reverse_mode => {
                 state.multi_digit_accumulator.push(self.c);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{digit}")
             }
             // digit_inv
             _ if !state.string_mode && self.c.is_digit(10) && state.reverse_mode => {
                 state.multi_digit_accumulator.insert(0, self.c);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{digit}_{\\,\\textrm{inv}}")
             }
             // digit_end
             _ if !state.string_mode
@@ -150,14 +150,14 @@ impl Instruction {
                 state.multi_digit_accumulator.clear();
                 state.data_stack.push(x ^ n);
 
-                Successful
+                Successful("\\textrm{digit}_{\\,\\textrm{end}}")
             }
             // push
             PUSH if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
                 state.data_stack.push(0);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{push}")
             }
             // pop
             POP if !state.string_mode
@@ -168,7 +168,7 @@ impl Instruction {
                 state.data_stack.pop().expect("non empty");
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{pop}")
             }
             // transfer_1
             TRANSFER_TOP_DATA_CONTROL
@@ -180,7 +180,7 @@ impl Instruction {
                 state.control_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{transfer_1}")
             }
             // transfer_2
             TRANSFER_TOP_CONTROL_DATA
@@ -192,7 +192,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{transfer_2}")
             }
             // interchange
             INTERCHANGE_TOPS
@@ -207,7 +207,7 @@ impl Instruction {
                 state.control_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{interchange}")
             }
             // write
             WRITE
@@ -223,7 +223,7 @@ impl Instruction {
                         print!("{}", c);
 
                         state.location = state.next();
-                        Successful
+                        Successful("\\textrm{write}")
                     }
                     _ => {
                         state.data_stack.push(top);
@@ -243,7 +243,7 @@ impl Instruction {
                 debug_assert!(c.is_ascii());
                 state.data_stack.push(c as u32);
 
-                Successful
+                Successful("\\textrm{unwrite}")
             }
             // read
             READ if !state.string_mode
@@ -277,7 +277,7 @@ impl Instruction {
                         state.data_stack.push(c);
 
                         state.location = state.next();
-                        Successful
+                        Successful("\\textrm{read}")
                     }
                     None => Unsuccessful,
                 }
@@ -294,7 +294,7 @@ impl Instruction {
                         state.input_stack.push(c);
 
                         state.location = state.next();
-                        Successful
+                        Successful("\\textrm{unread}")
                     }
                     _ => {
                         state.data_stack.push(top);
@@ -312,7 +312,7 @@ impl Instruction {
                 state.data_stack.push(x + 1);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{increment}")
             }
             // decrement
             DECREMENT
@@ -324,7 +324,7 @@ impl Instruction {
                 state.data_stack.push(x - 1);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{decrement}")
             }
             // add
             ADD if !state.string_mode
@@ -337,7 +337,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{add}")
             }
             // subtract
             SUBTRACT
@@ -351,7 +351,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{subtract}")
             }
             // divide
             DIVIDE
@@ -367,7 +367,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{divide}")
             }
             // multiply
             MULTIPLY
@@ -382,7 +382,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{multiply}")
             }
             // not
             NOT if !state.string_mode
@@ -393,7 +393,7 @@ impl Instruction {
                 state.data_stack.push(!x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{not}")
             }
             // and
             AND if !state.string_mode
@@ -408,7 +408,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{and}")
             }
             // or
             OR if !state.string_mode
@@ -423,7 +423,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{or}")
             }
             // xor
             XOR if !state.string_mode
@@ -436,7 +436,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{xor}")
             }
             // rotate_left
             ROTATE_LEFT
@@ -450,7 +450,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{rotate}_{\\,\\textrm{left}}")
             }
             // rotate_right
             ROTATE_RIGHT
@@ -464,7 +464,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{}")
             }
             // toggle
             CONTROL_TOGGLE
@@ -476,7 +476,7 @@ impl Instruction {
                 state.control_stack.push(c ^ 1);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{toggle}")
             }
             // equal_true / equal_false
             EQUAL
@@ -496,10 +496,12 @@ impl Instruction {
                 if y == x {
                     let c = state.control_stack.pop().expect("non empty");
                     state.control_stack.push(c ^ 1);
+                    state.location = state.next();
+                    Successful("\\textrm{equal}_{\\,\\textrm{true}}")
+                } else {
+                    state.location = state.next();
+                    Successful("\\textrm{equal}_{\\,\\textrm{false}}")
                 }
-
-                state.location = state.next();
-                Successful
             }
             // less_true / less_false
             LESS if !state.string_mode
@@ -518,10 +520,12 @@ impl Instruction {
                 if y < x {
                     let c = state.control_stack.pop().expect("non empty");
                     state.control_stack.push(c ^ 1);
+                    state.location = state.next();
+                    Successful("\\textrm{equal}_{\\,\\textrm{true}}")
+                } else {
+                    state.location = state.next();
+                    Successful("\\textrm{equal}_{\\,\\textrm{false}}")
                 }
-
-                state.location = state.next();
-                Successful
             }
             // greater_true / greater_false
             GREATER
@@ -541,10 +545,12 @@ impl Instruction {
                 if y > x {
                     let c = state.control_stack.pop().expect("non empty");
                     state.control_stack.push(c ^ 1);
+                    state.location = state.next();
+                    Successful("\\textrm{greater}_{\\,\\textrm{true}}")
+                } else {
+                    state.location = state.next();
+                    Successful("\\textrm{greater}_{\\,\\textrm{false}}")
                 }
-
-                state.location = state.next();
-                Successful
             }
             // swap_1
             SWAP_TWO_TOP
@@ -558,7 +564,7 @@ impl Instruction {
                 state.data_stack.push(y);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{swap}_{\\,\\textrm{1}}")
             }
             // dig
             DIG if !state.string_mode
@@ -573,7 +579,7 @@ impl Instruction {
                 state.data_stack.push(z);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{dig}")
             }
             // bury
             BURY if !state.string_mode
@@ -588,7 +594,7 @@ impl Instruction {
                 state.data_stack.push(y);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{bury}")
             }
             // swap_3
             SWAP_FIRST_THIRD
@@ -604,7 +610,7 @@ impl Instruction {
                 state.data_stack.push(z);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{swap}_{\\,\\textrm{3}}")
             }
             // swap_2
             SWAP_SECOND_THIRD
@@ -620,7 +626,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{swap}_{\\,\\textrm{2}}")
             }
             // over
             OVER if !state.string_mode
@@ -634,7 +640,7 @@ impl Instruction {
                 state.data_stack.push(y);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{over}")
             }
             // under
             UNDER
@@ -653,7 +659,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{under}")
             }
             // duplicate
             DUPLICATE
@@ -666,7 +672,7 @@ impl Instruction {
                 state.data_stack.push(x);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{duplicate}")
             }
             // unduplicate
             UNDUPLICATE
@@ -682,14 +688,14 @@ impl Instruction {
                 state.data_stack.pop().expect("len >= 2");
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{unduplicate}")
             }
             // string_toggle
             STRING_MODE if state.multi_digit_accumulator.is_empty() => {
                 state.string_mode = !state.string_mode;
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{string}_{\\,\\textrm{toggle}}")
             }
             // halt
             HALT if !state.string_mode && state.multi_digit_accumulator.is_empty() => Halt,
@@ -698,14 +704,14 @@ impl Instruction {
                 state.direction = state.direction.mirror();
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{mirror}_{\\,\\textrm{1}}")
             }
             // mirror_2
             MIRROR_FORWARD if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
                 state.direction = state.direction.mirror().opposite();
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{mirror}_{\\,\\textrm{2}}")
             }
             // branch_1
             BRANCH_EAST | BRANCH_NORTH | BRANCH_SOUTH | BRANCH_WEST
@@ -733,7 +739,7 @@ impl Instruction {
                 state.direction = d;
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{branch}_{\\,\\textrm{1}}")
             }
             // branch_2
             BRANCH_EAST | BRANCH_NORTH | BRANCH_SOUTH | BRANCH_WEST
@@ -753,7 +759,7 @@ impl Instruction {
                 }
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{branch}_{\\,\\textrm{2}}")
             }
             // branch_3
             BRANCH_EAST | BRANCH_NORTH | BRANCH_SOUTH | BRANCH_WEST
@@ -772,7 +778,7 @@ impl Instruction {
                 state.direction = state.direction.opposite();
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{branch}_{\\,\\textrm{3}}")
             }
             // string_push
             _ if state.string_mode
@@ -784,7 +790,7 @@ impl Instruction {
                 state.data_stack.push(self.c as u32);
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{string}_{\\,\\textrm{push}}")
             }
             // string_pop
             _ if state.string_mode
@@ -796,14 +802,14 @@ impl Instruction {
                 state.data_stack.pop();
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{string}_{\\,\\textrm{pop}}")
             }
             // reverse
             REVERSE_MODE if !state.string_mode && state.multi_digit_accumulator.is_empty() => {
                 state.reverse_mode = !state.reverse_mode;
 
                 state.location = state.next();
-                Successful
+                Successful("\\textrm{reverse}")
             }
             // no rule found
             _ => {
