@@ -137,8 +137,10 @@ impl Instruction {
                 Successful
             }
             // digit_end
-            _ if !state.string_mode && !state.multi_digit_accumulator.is_empty()
-                && !self.c.is_digit(10) && !state.data_stack.is_empty() =>
+            _ if !state.string_mode
+                && !state.multi_digit_accumulator.is_empty()
+                && !self.c.is_digit(10)
+                && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
                 let n: u32 = state
@@ -158,7 +160,8 @@ impl Instruction {
                 Successful
             }
             // pop
-            POP if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            POP if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && !state.data_stack.is_empty()
                 && state.data_stack.last().expect("len >= 1") == 0 =>
             {
@@ -169,7 +172,8 @@ impl Instruction {
             }
             // transfer_1
             TRANSFER_TOP_DATA_CONTROL
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
@@ -180,7 +184,8 @@ impl Instruction {
             }
             // transfer_2
             TRANSFER_TOP_CONTROL_DATA
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && !state.control_stack.is_empty() =>
             {
                 let x = state.control_stack.pop().expect("non empty");
@@ -191,7 +196,8 @@ impl Instruction {
             }
             // interchange
             INTERCHANGE_TOPS
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && !state.data_stack.is_empty()
                     && !state.control_stack.is_empty() =>
             {
@@ -205,7 +211,8 @@ impl Instruction {
             }
             // write
             WRITE
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && !state.reverse_mode =>
             {
                 // try casting the top of the data stack to a char
@@ -226,8 +233,10 @@ impl Instruction {
             }
             // unwrite
             WRITE
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
-                    && state.reverse_mode && !state.output_stack.is_empty() =>
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
+                    && state.reverse_mode
+                    && !state.output_stack.is_empty() =>
             {
                 // pop the top char of the output stack and push its ascii value on the data stack.
                 let c = state.output_stack.pop().expect("non_empty");
@@ -237,7 +246,8 @@ impl Instruction {
                 Successful
             }
             // read
-            READ if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            READ if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && !state.reverse_mode =>
             {
                 // FIXME: this currently sees every byte as a char.
@@ -273,8 +283,10 @@ impl Instruction {
                 }
             }
             // unread
-            READ if !state.string_mode && state.multi_digit_accumulator.is_empty()
-                && state.reverse_mode && !state.data_stack.is_empty() =>
+            READ if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
+                && state.reverse_mode
+                && !state.data_stack.is_empty() =>
             {
                 let top = state.data_stack.pop().expect("non empty");
                 match char::from_u32(top as u32) {
@@ -292,7 +304,8 @@ impl Instruction {
             }
             // increment
             INCREMENT
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
@@ -303,7 +316,8 @@ impl Instruction {
             }
             // decrement
             DECREMENT
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
@@ -313,7 +327,8 @@ impl Instruction {
                 Successful
             }
             // add
-            ADD if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            ADD if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -326,7 +341,8 @@ impl Instruction {
             }
             // subtract
             SUBTRACT
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -339,7 +355,8 @@ impl Instruction {
             }
             // divide
             DIVIDE
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2
                     && state.data_stack.last().expect("len >= 2") != 0 =>
             {
@@ -354,7 +371,8 @@ impl Instruction {
             }
             // multiply
             MULTIPLY
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -367,7 +385,8 @@ impl Instruction {
                 Successful
             }
             // not
-            NOT if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            NOT if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
@@ -377,7 +396,8 @@ impl Instruction {
                 Successful
             }
             // and
-            AND if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            AND if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -391,7 +411,8 @@ impl Instruction {
                 Successful
             }
             // or
-            OR if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            OR if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -405,7 +426,8 @@ impl Instruction {
                 Successful
             }
             // xor
-            XOR if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            XOR if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -418,7 +440,8 @@ impl Instruction {
             }
             // rotate_left
             ROTATE_LEFT
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -431,7 +454,8 @@ impl Instruction {
             }
             // rotate_right
             ROTATE_RIGHT
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -444,7 +468,8 @@ impl Instruction {
             }
             // toggle
             CONTROL_TOGGLE
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && !state.control_stack.is_empty() =>
             {
                 let c = state.control_stack.pop().expect("non empty");
@@ -455,7 +480,8 @@ impl Instruction {
             }
             // equal_true / equal_false
             EQUAL
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2
                     && !state.control_stack.is_empty() =>
             {
@@ -476,7 +502,8 @@ impl Instruction {
                 Successful
             }
             // less_true / less_false
-            LESS if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            LESS if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 2
                 && !state.control_stack.is_empty() =>
             {
@@ -498,7 +525,8 @@ impl Instruction {
             }
             // greater_true / greater_false
             GREATER
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2
                     && !state.control_stack.is_empty() =>
             {
@@ -520,7 +548,8 @@ impl Instruction {
             }
             // swap_1
             SWAP_TWO_TOP
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -532,7 +561,8 @@ impl Instruction {
                 Successful
             }
             // dig
-            DIG if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            DIG if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -546,7 +576,8 @@ impl Instruction {
                 Successful
             }
             // bury
-            BURY if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            BURY if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -560,8 +591,10 @@ impl Instruction {
                 Successful
             }
             // swap_3
-            SWAP_FIRST_THIRD if !state.string_mode && state.multi_digit_accumulator.is_empty()
-                && state.data_stack.len() >= 3 =>
+            SWAP_FIRST_THIRD
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
+                    && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
                 let y = state.data_stack.pop().expect("len >= 3");
@@ -575,7 +608,8 @@ impl Instruction {
             }
             // swap_2
             SWAP_SECOND_THIRD
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 3 =>
             {
                 let x = state.data_stack.pop().expect("len >= 3");
@@ -589,7 +623,8 @@ impl Instruction {
                 Successful
             }
             // over
-            OVER if !state.string_mode && state.multi_digit_accumulator.is_empty()
+            OVER if !state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && state.data_stack.len() >= 2 =>
             {
                 let x = state.data_stack.pop().expect("len >= 2");
@@ -603,7 +638,8 @@ impl Instruction {
             }
             // under
             UNDER
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 3
                     && state.data_stack.last().expect("len >= 3")
                         == state
@@ -621,7 +657,8 @@ impl Instruction {
             }
             // duplicate
             DUPLICATE
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && !state.data_stack.is_empty() =>
             {
                 let x = state.data_stack.pop().expect("non empty");
@@ -633,7 +670,8 @@ impl Instruction {
             }
             // unduplicate
             UNDUPLICATE
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.data_stack.len() >= 2
                     && state.data_stack.last().expect("len >= 2")
                         == state
@@ -719,7 +757,8 @@ impl Instruction {
             }
             // branch_3
             BRANCH_EAST | BRANCH_NORTH | BRANCH_SOUTH | BRANCH_WEST
-                if !state.string_mode && state.multi_digit_accumulator.is_empty()
+                if !state.string_mode
+                    && state.multi_digit_accumulator.is_empty()
                     && state.direction == self.direction().expect("self is a branching instruction")
                     && !state.control_stack.is_empty() =>
             {
@@ -736,7 +775,8 @@ impl Instruction {
                 Successful
             }
             // string_push
-            _ if state.string_mode && state.multi_digit_accumulator.is_empty()
+            _ if state.string_mode
+                && state.multi_digit_accumulator.is_empty()
                 && !state.reverse_mode =>
             {
                 // if reverse mode is not enabled push the ascii value of the char to the
@@ -747,7 +787,9 @@ impl Instruction {
                 Successful
             }
             // string_pop
-            _ if state.string_mode && state.multi_digit_accumulator.is_empty() && state.reverse_mode
+            _ if state.string_mode
+                && state.multi_digit_accumulator.is_empty()
+                && state.reverse_mode
                 && !state.data_stack.is_empty()
                 && state.data_stack.last().expect("non empty") == self.c as u32 =>
             {
