@@ -42,8 +42,8 @@ impl Direction {
         self.left().opposite()
     }
 
-    pub fn latex_representation(&self) -> String {
-        match *self {
+    pub fn latex_representation(self) -> String {
+        match self {
             Direction::North => "\\uparrow",
             Direction::East => "\\rightarrow",
             Direction::South => "\\downarrow",

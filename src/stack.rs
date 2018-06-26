@@ -48,7 +48,7 @@ impl<T: Copy + Display> Stack<T> {
     }
     pub fn latex_representation(&self) -> String {
         if self.s.is_empty() {
-            format!("\\epsilon")
+            "\\epsilon".to_owned()
         } else {
             let mut string = String::new();
 

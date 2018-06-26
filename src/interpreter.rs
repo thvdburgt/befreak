@@ -8,7 +8,6 @@ pub fn run(program: Program) {
 
     let mut state = State::new(program);
 
-
     let mut counter = 0;
     loop {
         print!("{} & ", counter);

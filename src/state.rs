@@ -60,7 +60,8 @@ impl State {
 
     // instr
     pub fn instr(&self) -> Instruction {
-        let instruction = self.program
+        let instruction = self
+            .program
             .instruction_at(self.location)
             .expect("location in state should always give an instruction.");
 

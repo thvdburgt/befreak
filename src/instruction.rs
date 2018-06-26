@@ -745,7 +745,8 @@ impl Instruction {
             BRANCH_EAST | BRANCH_NORTH | BRANCH_SOUTH | BRANCH_WEST
                 if !state.string_mode && state.multi_digit_accumulator.is_empty()
                     && state.direction
-                        == self.direction()
+                        == self
+                            .direction()
                             .expect("self is a branching instruction")
                             .opposite() && !state.control_stack.is_empty() =>
             {
